@@ -17,18 +17,22 @@ CORS(app)
 jackson_family = FamilyStructure("Jackson")
 
 jackson_family.add_member({
-    "first name": "Jhon",
-    "age": 33,
-    "lucky number": [7, 13, 22]})
+"first_name":"John",
+"lucky_numbers":[7, 13, 22],
+"age": 33
+})
+
 jackson_family.add_member({
-     "first name": "Jane",
-    "age": 35,
-    "lucky number": [10, 14, 3]})
+"first_name":"Jane",
+"lucky_numbers":[10, 14, 3],
+"age": 35
+})
+
 jackson_family.add_member({
-     "first name": "Jimmy",
-    "age": 5,
-    "lucky number": [1],
-    })
+"first_name":"Jimmy",
+"lucky_numbers":[1],
+"age": 5
+})
 
 
 # Handle/serialize errors like a JSON object
@@ -41,45 +45,47 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
-
-####### ALL MEMBERS Methods GET
 @app.route('/members', methods=['GET'])
 def handle_hello():
 
     # this is how you can use the Family datastructure by calling its methods
     members = jackson_family.get_all_members()
-   
+ 
+    return jsonify(members), 200
+
+
+@app.route('/member/<int:index>', methods=['GET'])
+def get_person(index):
+
+    # this is how you can use the Family datastructure by calling its methods
+    person = jackson_family.get_member(index)
+    if person:
+        return jsonify(person), 200
+    return 'Not Found', 404
+    
+    
+
+@app.route('/member', methods=['POST'])
+def new_person():
+    cuerpo_peticion = request.data # texto plano
+    cuerpo_peticion_dict = json.loads(cuerpo_peticion) # diccionario python
+    jackson_family.add_member(cuerpo_peticion_dict)
+
+    members = jackson_family.get_all_members()
     return jsonify(members), 200
 
 
 
-####### ONE MEMBER Methods GET+ID
-@app.route('/member/<int:id>', methods=['GET'])
-def get_member(id):
-
-    member = jackson_family.get_member(id)
+@app.route('/member/<int:index>', methods=['DELETE'])
+def delete_person(index):
+    member = jackson_family.delete_member(index)
+    # members = jackson_family.get_all_members()
     if member:
-        return jsonify(member), 200
+        body = {
+            "done": True
+        }
+        return jsonify(body), 200
     return 'Not Found', 404
-
-
-
-###### POST MEMBER, Methods Post
-@app.route('/member', methods=['POST'])
-def new_member():
-    member = request.get_json()
-    jackson_family.add_member(member)
-
-    return  "Member add"+jsonify(member), 200
-
-
-@app.route('/member/<int:id>', methods=['DELETE'])
-def delete_member(id):
-    member = jackson_family.delete_member(id)
-    print(member)
-    if member:
-       return "Member delete"+jsonify(member), 200
-    return "Member not found, try again"
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
