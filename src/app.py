@@ -2,6 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
+import json
 from flask import Flask, request, jsonify, url_for
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
@@ -28,6 +29,8 @@ jackson_family.add_member({
     "age": 5,
     "lucky number": [1],
     })
+
+
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
@@ -38,6 +41,8 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+
+####### ALL MEMBERS Methods GET
 @app.route('/members', methods=['GET'])
 def handle_hello():
 
@@ -45,11 +50,36 @@ def handle_hello():
     members = jackson_family.get_all_members()
    
     return jsonify(members), 200
-    
-@app.route('/delete/<int:post_id>', methods=['GET'])
-def delete(post_id):
-    borrar = jackson_family.delete_member(post_id)
-    print(borrar)    #jsonify(response_body), 200
+
+
+
+####### ONE MEMBER Methods GET+ID
+@app.route('/member/<int:id>', methods=['GET'])
+def get_member(id):
+
+    member = jackson_family.get_member(id)
+    if member:
+        return jsonify(member), 200
+    return 'Not Found', 404
+
+
+
+###### POST MEMBER, Methods Post
+@app.route('/member', methods=['POST'])
+def new_member():
+    member = request.get_json()
+    jackson_family.add_member(member)
+
+    return  "Member add"+jsonify(member), 200
+
+
+@app.route('/member/<int:id>', methods=['DELETE'])
+def delete_member(id):
+    member = jackson_family.delete_member(id)
+    print(member)
+    if member:
+       return "Member delete"+jsonify(member), 200
+    return "Member not found, try again"
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
