@@ -67,11 +67,12 @@ def get_member(id):
 ###### POST MEMBER
 @app.route('/member', methods=['POST'])
 def new_member():
-    member = request.get_json()
+    reques_body = request.data # texto plano
+    member = json.loads(reques_body) # diccionario python
     jackson_family.add_member(member)
 
-    return  "Member add"+jsonify(member), 200
-
+    members = jackson_family.get_all_members()
+    return jsonify(members), 200
 
 
 
@@ -81,8 +82,10 @@ def delete_member(id):
     member = jackson_family.delete_member(id)
     print(member)
     if member:
-       return "Member delete"+jsonify(member), 200
-    return "Member not found, try again"
+        return jsonify({
+            'done': True
+        }), 200 
+    return jsonify({}), 404 ,"Member not found, try again"
 
 
 
